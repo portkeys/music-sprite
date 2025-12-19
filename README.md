@@ -1,48 +1,70 @@
-# Melody to Chords Helper
+# Music Sprite
 
-A web application that helps musicians identify chord progressions from melody notes.
+**Turn the melody in your head into sheet music with chords.**
 
-## Running the Application
+## Try It Now
 
-### Option 1: Using a Local Server (Recommended)
-ES6 modules require files to be served over HTTP/HTTPS. Use one of these methods:
+**[https://music-sprite.vercel.app](https://music-sprite.vercel.app)**
 
-**Python:**
+## About
+
+Music Sprite is a tool for amateur musicians who want to compose music easily. If you can hum a melody but struggle to find the right chords, this app is for you.
+
+### Features
+
+- **Find your key** - Select the unique notes in your melody and discover which major keys work
+- **See your chords** - View all 7 diatonic chords with their harmonic functions (Home, Bridge, Outside)
+- **Play with a piano** - Click piano keys to input your melody and hear it played back
+- **Get chord suggestions** - The app analyzes each phrase and suggests the best matching chords
+- **Audition chords** - Click any chord to hear how it sounds with your melody
+- **Progression tips** - Learn the basic formula: Home → Bridge → Outside → Home
+
+## Open Source
+
+This project is completely open source. Feel free to:
+
+- Browse the code and learn from it
+- Submit issues if you find bugs
+- Open pull requests with improvements
+- Fork it and make it your own
+
+Contributions are welcome! Whether it's fixing a typo, improving the UI, adding new features, or supporting more scales and chord types - all PRs are appreciated.
+
+## Running Locally
+
+ES6 modules require a local server:
+
 ```bash
+# Using Python
 python -m http.server 8000
-```
-Then open: http://localhost:8000/melody-to-chords.html
+# Then open: http://localhost:8000
 
-**Node.js (with npx):**
-```bash
+# Or using Node.js
 npx serve
 ```
-
-
-### Option 2: Direct File Opening
-If you open the HTML file directly (file://), ES6 modules won't work. You'll need to use a local server as shown above.
 
 ## File Structure
 
 ```
 music_buddy/
-├── melody-to-chords.html  # Main HTML file
-├── music-theory.js         # Music theory data and utilities
-├── app.js                  # Main application logic
-└── README.md              # This file
+├── index.html       # Main HTML file with styles
+├── app.js           # Application logic
+├── music-theory.js  # Scales, chords, and music theory utilities
+├── audio.js         # Piano audio playback using Tone.js
+└── README.md
 ```
-
-## How It Works
-
-1. **Step 1**: User selects unique notes from their melody
-2. **Step 2**: App finds matching major keys (shown but disabled until notes are selected)
-3. **Step 3**: User clicks a key to see diatonic chords (shown but disabled until key is selected)
-4. **Step 4**: User enters phrases and app suggests best matching chords
 
 ## Technical Details
 
-- **Pure client-side**: No backend required
-- **ES6 Modules**: Modern JavaScript module system for better code organization
-- **PDF Export**: Uses jsPDF library for generating chord progression PDFs
-- **Responsive Design**: Works on desktop and mobile devices
+- **Pure client-side** - No backend required, runs entirely in your browser
+- **ES6 Modules** - Modern JavaScript for clean code organization
+- **Tone.js** - Real Salamander Grand Piano samples for authentic sound
+- **Responsive** - Works on desktop and mobile
 
+## License
+
+MIT - Use it however you like!
+
+---
+
+Made for people who think about music via half intuition and half coding.

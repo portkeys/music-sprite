@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Melody to Chords Helper</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        :root {
+            --bg: #faf9f7;
+            --card: #ffffff;
+            --text: #1a1a1a;
+            --text-muted: #6b6b6b;
+            --accent: #2d5a41;
+            --accent-light: #e8f0eb;
+            --border: #e5e5e5;
+            --note-bg: #f5f5f5;
+            --note-selected: #2d5a41;
+            --note-selected-text: #ffffff;
+            --shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 720px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .card-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .step-number {
+            background: var(--accent);
+            color: white;
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Note Selection Grid */
+        .note-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .note-btn {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.9rem;
+            font-weight: 500;
+            padding: 0.6rem 0.9rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            background: var(--note-bg);
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            min-width: 3.2rem;
+            text-align: center;
+        }
+
+        .note-btn:hover {
+            border-color: var(--accent);
+            background: var(--accent-light);
+        }
+
+        .note-btn.selected {
+            background: var(--note-selected);
+            color: var(--note-selected-text);
+            border-color: var(--note-selected);
+        }
+
+        .note-row {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .note-row-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            width: 100%;
+            margin-bottom: 0.25rem;
+            font-weight: 500;
+        }
+
+        /* Selected Notes Display */
+        .selected-notes {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .selected-notes-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .selected-notes-display {
+            font-family: 'DM Mono', monospace;
+            font-size: 1.1rem;
+            color: var(--accent);
+            font-weight: 500;
+            min-height: 1.5rem;
+        }
+
+        .clear-btn {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.8rem;
+            padding: 0.4rem 0.8rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: white;
+            color: var(--text-muted);
+            cursor: pointer;
+            margin-left: 1rem;
+            transition: all 0.15s ease;
+        }
+
+        .clear-btn:hover {
+            border-color: #d00;
+            color: #d00;
+        }
+
+        /* Key Results */
+        .key-results {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .key-match {
+            padding: 1rem;
+            border-radius: 8px;
+            background: var(--accent-light);
+            border: 1px solid rgba(45, 90, 65, 0.2);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .key-match:hover {
+            background: rgba(45, 90, 65, 0.15);
+        }
+
+        .key-match.selected {
+            background: var(--accent);
+            color: white;
+        }
+
+        .key-match.selected .key-notes {
+            color: rgba(255,255,255,0.8);
+        }
+
+        .key-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .key-notes {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .no-match {
+            color: var(--text-muted);
+            font-style: italic;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        /* Chord Display */
+        .chord-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .chord-card {
+            padding: 1rem;
+            border-radius: 8px;
+            background: var(--note-bg);
+            border: 1px solid var(--border);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .chord-card:hover {
+            border-color: var(--accent);
+            background: var(--accent-light);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(45, 90, 65, 0.15);
+        }
+
+        .chord-card.playing {
+            transform: scale(1.05);
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .chord-card.playing .chord-numeral,
+        .chord-card.playing .chord-notes {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .chord-card.playing .chord-name {
+            color: white;
+        }
+
+        .chord-function {
+            font-size: 0.65rem;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            margin-bottom: 0.4rem;
+            font-weight: 500;
+        }
+
+        .chord-function.home {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .chord-function.home-like {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .chord-function.bridge {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .chord-function.bridge-like {
+            background: #fff8e1;
+            color: #f9a825;
+        }
+
+        .chord-function.outside {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .chord-function.outside-like {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .chord-numeral {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+
+        .chord-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            color: var(--accent);
+        }
+
+        .chord-notes {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* Phrase Analyzer */
+        /* Phrase Row */
+        .phrase-row {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+            align-items: flex-start;
+        }
+
+        .phrase-number {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            padding-top: 0.85rem;
+            min-width: 1.5rem;
+        }
+
+        .phrase-input-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .phrase-input {
+            width: 100%;
+            font-family: 'DM Mono', monospace;
+            font-size: 1rem;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            background: white;
+            transition: border-color 0.15s ease;
+        }
+
+        .phrase-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .phrase-input::placeholder {
+            color: #bbb;
+        }
+
+        .phrase-input.has-result {
+            border-color: var(--accent);
+            background: var(--accent-light);
+        }
+
+        .phrase-chord-result {
+            padding: 0.75rem;
+            background: var(--accent-light);
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+
+        .chord-suggestions-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .chord-suggestions-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .chord-suggestion {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 0.5rem 0.75rem;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            min-width: 100px;
+        }
+
+        .chord-suggestion:hover {
+            border-color: var(--accent);
+            background: var(--accent-light);
+        }
+
+        .chord-suggestion.selected {
+            border-color: var(--accent);
+            background: var(--accent);
+            color: white;
+        }
+
+        .chord-suggestion.selected .chord-suggestion-name {
+            color: white;
+        }
+
+        .chord-suggestion.selected .chord-suggestion-stats {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .chord-suggestion.selected .chord-suggestion-function {
+            filter: brightness(1.5);
+        }
+
+        .chord-suggestion-header {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .chord-suggestion-name {
+            font-family: 'DM Mono', monospace;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--accent);
+        }
+
+        .chord-suggestion-function {
+            font-size: 0.85rem;
+        }
+
+        .chord-suggestion-stats {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .chord-suggestion-function.home { filter: none; }
+        .chord-suggestion-function.home-like { filter: none; }
+        .chord-suggestion-function.bridge { filter: none; }
+        .chord-suggestion-function.bridge-like { filter: none; }
+        .chord-suggestion-function.outside { filter: none; }
+        .chord-suggestion-function.outside-like { filter: none; }
+
+        .phrase-delete-btn {
+            padding: 0.5rem;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.15s ease;
+            margin-top: 0.5rem;
+        }
+
+        .phrase-delete-btn:hover {
+            background: #fee;
+            color: #d00;
+        }
+
+        .add-phrase-btn {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 500;
+            padding: 0.6rem 1rem;
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            width: 100%;
+            margin-top: 0.5rem;
+        }
+
+        .add-phrase-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-light);
+        }
+
+        /* Piano Keyboard */
+        .piano-keyboard-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .piano-keyboard {
+            position: relative;
+            display: flex;
+            height: 80px;
+            user-select: none;
+        }
+
+        .piano-key {
+            position: relative;
+            width: 28px;
+            height: 80px;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 0 0 4px 4px;
+            cursor: pointer;
+            transition: background 0.1s ease;
+            z-index: 1;
+        }
+
+        .piano-key:hover {
+            background: var(--accent-light);
+        }
+
+        .piano-key:active,
+        .piano-key.playing {
+            background: var(--accent);
+        }
+
+        .piano-key.black {
+            position: absolute;
+            width: 20px;
+            height: 50px;
+            background: #333;
+            border-color: #222;
+            border-radius: 0 0 3px 3px;
+            z-index: 2;
+        }
+
+        .piano-key.black:hover {
+            background: #555;
+        }
+
+        .piano-key.black:active,
+        .piano-key.black.playing {
+            background: var(--accent);
+        }
+
+        .piano-key-label {
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.6rem;
+            color: #999;
+            pointer-events: none;
+        }
+
+        .piano-key.black .piano-key-label {
+            color: #888;
+        }
+
+        .piano-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .play-melody-btn,
+        .backspace-btn {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: white;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.15s ease;
+            min-width: 36px;
+        }
+
+        .play-melody-btn:hover,
+        .backspace-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-light);
+        }
+
+        .play-melody-btn {
+            background: var(--accent-light);
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .play-melody-btn:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        .play-melody-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Progression Tips */
+        .progression-tips {
+            background: var(--accent-light);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+
+        .tips-header {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 500;
+            color: var(--accent);
+            transition: background 0.15s ease;
+        }
+
+        .tips-header:hover {
+            background: rgba(45, 90, 65, 0.1);
+        }
+
+        .tips-toggle {
+            transition: transform 0.2s ease;
+        }
+
+        .progression-tips.expanded .tips-toggle {
+            transform: rotate(180deg);
+        }
+
+        .tips-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            padding: 0 1rem;
+        }
+
+        .progression-tips.expanded .tips-content {
+            max-height: 500px;
+            padding: 0 1rem 1rem;
+        }
+
+        .tips-intro {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+        }
+
+        .tips-formula {
+            background: white;
+            border-radius: 6px;
+            padding: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .formula-basic {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .formula-steps {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .formula-steps .arrow {
+            color: var(--text-muted);
+        }
+
+        .formula-example {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        .step-home { color: #155724; }
+        .step-home-like { color: #2e7d32; }
+        .step-bridge { color: #856404; }
+        .step-bridge-like { color: #f9a825; }
+        .step-outside { color: #004085; }
+        .step-outside-like { color: #1565c0; }
+
+        .tips-variations {
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .tips-examples {
+            font-size: 0.8rem;
+            margin: 0;
+            padding-left: 1.25rem;
+            color: var(--text-muted);
+        }
+
+        .tips-examples li {
+            margin-bottom: 0.35rem;
+        }
+
+        /* Chord Summary */
+        .chord-summary {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .chord-summary-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .chord-summary-display {
+            font-family: 'DM Mono', monospace;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--accent);
+            letter-spacing: 0.05em;
+        }
+
+        .export-btn {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 500;
+            padding: 0.75rem 1.25rem;
+            border: none;
+            border-radius: 8px;
+            background: var(--accent);
+            color: white;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            margin-top: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .export-btn:hover {
+            background: #234a34;
+        }
+
+        .export-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Disabled state for cards */
+        .card.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+            position: relative;
+        }
+
+        .card.disabled::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+        }
+
+        .card.disabled .step-number {
+            background: #ccc;
+        }
+
+        /* Key hint text */
+        .key-hint {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+            font-style: italic;
+        }
+
+        .key-match.selected .key-hint {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* Step indicator arrow */
+        .step-arrow {
+            text-align: center;
+            margin: -0.5rem 0 0.5rem;
+            color: var(--text-muted);
+            font-size: 1.2rem;
+        }
+
+        /* Hint text */
+        .hint {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .hint.disabled-hint {
+            font-style: italic;
+            color: #999;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .container {
+                max-width: 100%;
+            }
+
+            /* Hide interactive elements */
+            .note-row,
+            .clear-btn,
+            .key-results .key-match:not(.selected),
+            .piano-keyboard-container,
+            .add-phrase-btn,
+            .phrase-delete-btn,
+            .export-btn,
+            .step-arrow,
+            .hint,
+            .progression-tips,
+            footer {
+                display: none !important;
+            }
+
+            /* Show only selected key */
+            .key-match.selected {
+                background: var(--accent-light) !important;
+                color: var(--text) !important;
+            }
+
+            .key-match.selected .key-notes {
+                color: var(--text-muted) !important;
+            }
+
+            /* Clean up cards */
+            .card {
+                box-shadow: none;
+                border: 1px solid #ddd;
+                break-inside: avoid;
+            }
+
+            .card.disabled,
+            .card.hidden {
+                display: none !important;
+            }
+
+            /* Show phrase inputs as plain text */
+            .phrase-input {
+                border: none;
+                background: transparent;
+                padding: 0.5rem 0;
+            }
+
+            /* Make chord suggestions look clean */
+            .chord-suggestion {
+                border: 1px solid #ddd;
+                background: white;
+            }
+
+            .chord-suggestion.selected {
+                background: var(--accent-light);
+                border-color: var(--accent);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎹 Melody to Chords Helper</h1>
+            <p class="subtitle">Turn the melody in your head into sheet music with chords</p>
+        </header>
+
+        <!-- Step 1: Select Notes -->
+        <div class="card">
+            <div class="card-title">
+                <span class="step-number">1</span>
+                Select the unique notes in your melody
+            </div>
+            <p class="hint">Play your melody on piano and find all the unique notes. Remember: each letter should only appear once (so pick either F or F♯, not both).</p>
+            
+            <div class="note-row">
+                <span class="note-row-label">Natural notes</span>
+                <button class="note-btn" data-note="C">C</button>
+                <button class="note-btn" data-note="D">D</button>
+                <button class="note-btn" data-note="E">E</button>
+                <button class="note-btn" data-note="F">F</button>
+                <button class="note-btn" data-note="G">G</button>
+                <button class="note-btn" data-note="A">A</button>
+                <button class="note-btn" data-note="B">B</button>
+            </div>
+            <div class="note-row">
+                <span class="note-row-label">Sharps</span>
+                <button class="note-btn" data-note="C♯">C♯</button>
+                <button class="note-btn" data-note="D♯">D♯</button>
+                <button class="note-btn" data-note="E♯">E♯</button>
+                <button class="note-btn" data-note="F♯">F♯</button>
+                <button class="note-btn" data-note="G♯">G♯</button>
+                <button class="note-btn" data-note="A♯">A♯</button>
+                <button class="note-btn" data-note="B♯">B♯</button>
+            </div>
+            <div class="note-row">
+                <span class="note-row-label">Flats</span>
+                <button class="note-btn" data-note="C♭">C♭</button>
+                <button class="note-btn" data-note="D♭">D♭</button>
+                <button class="note-btn" data-note="E♭">E♭</button>
+                <button class="note-btn" data-note="F♭">F♭</button>
+                <button class="note-btn" data-note="G♭">G♭</button>
+                <button class="note-btn" data-note="A♭">A♭</button>
+                <button class="note-btn" data-note="B♭">B♭</button>
+            </div>
+
+            <div class="selected-notes">
+                <span class="selected-notes-label">Your unique notes:</span>
+                <span class="selected-notes-display" id="selectedNotesDisplay">—</span>
+                <button class="clear-btn" id="clearBtn">Clear</button>
+            </div>
+        </div>
+
+        <!-- Step 2: Matching Keys -->
+        <div class="step-arrow">↓</div>
+        <div class="card disabled" id="keyCard">
+            <div class="card-title">
+                <span class="step-number">2</span>
+                Possible keys that match your notes
+            </div>
+            <p class="hint disabled-hint">Select notes above to find matching keys. Then click a key to continue.</p>
+            
+            <div class="key-results" id="keyResults">
+                <div class="no-match">Select some notes above to find matching keys</div>
+            </div>
+        </div>
+
+        <!-- Step 3: Diatonic Chords -->
+        <div class="step-arrow">↓</div>
+        <div class="card disabled hidden" id="chordCard">
+            <div class="card-title">
+                <span class="step-number">3</span>
+                Diatonic chords in <span id="selectedKeyName">—</span>
+            </div>
+            <p class="hint disabled-hint">Select a key in step 2 to see the available chords.</p>
+            
+            <div class="chord-grid" id="chordGrid">
+                <!-- Chords will be inserted here -->
+            </div>
+        </div>
+
+        <!-- Step 4: Phrase Analyzer -->
+        <div class="step-arrow">↓</div>
+        <div class="card disabled hidden" id="phraseCard">
+            <div class="card-title">
+                <span class="step-number">4</span>
+                Find the best chord for each phrase
+            </div>
+            <p class="hint disabled-hint">Select a key in step 2 to start analyzing phrases.</p>
+
+            <div class="progression-tips" id="progressionTips">
+                <div class="tips-header" onclick="this.parentElement.classList.toggle('expanded')">
+                    <span>💡 Chord Progression Tips</span>
+                    <span class="tips-toggle">▼</span>
+                </div>
+                <div class="tips-content">
+                    <p class="tips-intro">Think of chord progressions as a journey:</p>
+                    <div class="tips-formula">
+                        <div class="formula-basic">
+                            <strong>Basic Formula:</strong>
+                            <span class="formula-steps">
+                                <span class="step-home">🏠 Home</span>
+                                <span class="arrow">→</span>
+                                <span class="step-bridge">🌁 Bridge</span>
+                                <span class="arrow">→</span>
+                                <span class="step-outside">🚀 Outside</span>
+                                <span class="arrow">→</span>
+                                <span class="step-home">🏠 Home</span>
+                            </span>
+                            <span class="formula-example">(I → IV → V → I)</span>
+                        </div>
+                    </div>
+                    <p class="tips-variations"><strong>Add variety</strong> by inserting "-like" chords in between:</p>
+                    <ul class="tips-examples">
+                        <li><span class="step-home">🏠</span> → <span class="step-outside">🚀</span> → <span class="step-home-like">🏡</span> → <span class="step-bridge">🌁</span> — Pop classic (I-V-vi-IV)</li>
+                        <li><span class="step-bridge-like">🌉</span> → <span class="step-outside">🚀</span> → <span class="step-home">🏠</span> — Jazz turnaround (ii-V-I)</li>
+                        <li><span class="step-home">🏠</span> → <span class="step-bridge">🌁</span> → <span class="step-home-like">🏡</span> → <span class="step-outside">🚀</span> — Extended journey</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div id="phrasesContainer">
+                <!-- Phrases will be added here -->
+            </div>
+            
+            <button class="add-phrase-btn" id="addPhraseBtn">+ Add phrase</button>
+            
+            <div class="chord-summary hidden" id="chordSummary">
+                <div class="chord-summary-label">Your chord progression:</div>
+                <div class="chord-summary-display" id="chordSummaryDisplay">—</div>
+                <button class="export-btn" id="printBtn">🖨️ Print / Save as PDF</button>
+            </div>
+        </div>
+
+        <footer>
+            Made for people who think about music via half intuition and half coding 🎵<br>
+            <a href="https://flat.io" target="_blank">Write your sheet music on flat.io</a>
+        </footer>
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>

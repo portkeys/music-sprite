@@ -816,6 +816,15 @@
             color: #999;
         }
 
+        .hint a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .hint a:hover {
+            text-decoration: underline;
+        }
+
         /* Footer */
         footer {
             text-align: center;
@@ -977,7 +986,7 @@
                 <span class="step-number">3</span>
                 Diatonic chords in <span id="selectedKeyName">—</span>
             </div>
-            <p class="hint disabled-hint">Select a key in step 2 to see the available chords.</p>
+            <p class="hint disabled-hint">Select a key in step 2 to see the available chords. Once you know your key, you can pick any of its 7 chords. Each chord has a function (Home, Bridge, Outside) — think of your music as a journey: start from Home, venture out, and return Home. Chord function concept inspired by <a href="https://www.youtube.com/watch?v=1USZt8fx82U" target="_blank">NiceChord 好和弦</a>.</p>
             
             <div class="chord-grid" id="chordGrid">
                 <!-- Chords will be inserted here -->
@@ -1039,7 +1048,9 @@
 
         <footer>
             Made for people who think about music via half intuition and half coding 🎵<br>
-            <a href="https://flat.io" target="_blank">Write your sheet music on flat.io</a>
+            <a href="https://github.com/portkeys/music-sprite" target="_blank">Source Code</a> ·
+            <a href="https://www.youtube.com/@portkeys" target="_blank">Tutorial Video</a> ·
+            <a href="https://flat.io" target="_blank">Write sheet music on flat.io</a>
         </footer>
     </div>
 

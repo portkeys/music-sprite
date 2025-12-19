@@ -226,7 +226,7 @@ function selectKey(keyName) {
     const chords = buildDiatonicChords(keyName);
     chordGrid.innerHTML = chords.map(c => `
         <div class="chord-card" title="${c.function.description}">
-            <div class="chord-function ${c.function.role}">${c.function.icon} ${c.function.label}</div>
+            <div class="chord-function ${c.function.role}"><span class="function-icon">${c.function.icon}</span> ${c.function.label}</div>
             <div class="chord-numeral">${c.numeral}</div>
             <div class="chord-name">${c.name}</div>
             <div class="chord-notes">${c.notes.join(' ')}</div>

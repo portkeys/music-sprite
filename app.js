@@ -124,7 +124,7 @@ function updateUIState() {
     const step3Hint = chordCard.querySelector('.hint');
     if (hasKey) {
         chordCard.classList.remove('disabled', 'hidden');
-        step3Hint.textContent = 'These are the 7 chords you can use. For each phrase, find which chord covers most of the notes.';
+        step3Hint.innerHTML = 'These are the 7 chords you can use. Each chord has a function (Home, Bridge, Outside) — think of your music as a journey: start from Home, venture out, and return Home. I learned the chord function concept from <a href="https://www.youtube.com/watch?v=1USZt8fx82U" target="_blank">this video</a> by <a href="https://www.youtube.com/@nicechordwiwi" target="_blank">NiceChord 好和弦</a>.';
         step3Hint.classList.remove('disabled-hint');
     } else {
         chordCard.classList.add('disabled');
